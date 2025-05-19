@@ -14,7 +14,6 @@ class _EmbedingScreenState extends State<EmbedingScreen> {
   int? selectedSubband;
   int? selectedBit;
   String alfass = '';
-  bool useDeepLearning = false;
 
   final watermarkOptions = ['Metode 1', 'Metode 2', 'Metode 3', 'Metode 4'];
   final subbandOptions = [1, 2, 3, 4];
@@ -45,17 +44,16 @@ class _EmbedingScreenState extends State<EmbedingScreen> {
 
   void onStartEmbedding() {
     if (selectedWatermark != null &&
-        (useDeepLearning ||
-            (selectedSubband != null &&
-                selectedBit != null &&
-                alfass.isNotEmpty))) {
+        selectedSubband != null &&
+        selectedBit != null &&
+        alfass.isNotEmpty) {
       showLoadingThenNavigate(
         context: context,
         nextPage: EmbeddingResultScreen(
           watermark: selectedWatermark!,
-          subband: selectedSubband ?? -1,
-          bit: selectedBit ?? -1,
-          alfass: useDeepLearning ? "DL-Auto" : alfass,
+          subband: selectedSubband!,
+          bit: selectedBit!,
+          alfass: alfass,
         ),
       );
     } else {
@@ -150,34 +148,14 @@ class _EmbedingScreenState extends State<EmbedingScreen> {
               ),
 
               const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Use Deep Learning",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Color(0xFF411530),
-                    ),
-                  ),
-                  Switch(
-                    value: useDeepLearning,
-                    activeColor: const Color(0xFFD1512D),
-                    onChanged: (val) => setState(() => useDeepLearning = val),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
               _buildDropdown("Subband", selectedSubband, subbandOptions, (val) {
                 setState(() => selectedSubband = val);
-              }, enabled: !useDeepLearning),
+              }),
 
               const SizedBox(height: 20),
               _buildDropdown("Bit", selectedBit, bitOptions, (val) {
                 setState(() => selectedBit = val);
-              }, enabled: !useDeepLearning),
+              }),
 
               const SizedBox(height: 20),
               const Text(
@@ -189,13 +167,10 @@ class _EmbedingScreenState extends State<EmbedingScreen> {
               ),
               const SizedBox(height: 8),
               TextFormField(
-                enabled: !useDeepLearning,
                 onChanged: (val) => alfass = val,
                 keyboardType: TextInputType.number,
                 decoration: _inputDecoration().copyWith(
                   hintText: "Enter alfass value",
-                  fillColor:
-                      useDeepLearning ? Colors.grey.shade200 : Colors.white,
                 ),
               ),
 
@@ -284,9 +259,8 @@ class _EmbedingScreenState extends State<EmbedingScreen> {
     String label,
     int? selectedValue,
     List<int> options,
-    ValueChanged<int?> onChanged, {
-    bool enabled = true,
-  }) {
+    ValueChanged<int?> onChanged,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -310,10 +284,8 @@ class _EmbedingScreenState extends State<EmbedingScreen> {
                     ),
                   )
                   .toList(),
-          onChanged: enabled ? onChanged : null,
-          decoration: _inputDecoration().copyWith(
-            fillColor: enabled ? Colors.white : Colors.grey.shade200,
-          ),
+          onChanged: onChanged,
+          decoration: _inputDecoration(),
         ),
       ],
     );
