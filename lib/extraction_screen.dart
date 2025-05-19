@@ -11,11 +11,16 @@ class ExtractionScreen extends StatefulWidget {
 
 class _ExtractionScreenState extends State<ExtractionScreen> {
   String? selectedWatermark;
+  bool useDeepLearning = false;
 
   final watermarkOptions = ['Metode 1', 'Metode 2', 'Metode 3', 'Metode 4'];
 
   void onUploadAudio() {
     debugPrint('Audio uploaded for extraction');
+  }
+
+  void onUploadKey() {
+    debugPrint('Key file uploaded');
   }
 
   Future<void> showLoadingThenNavigate({
@@ -32,8 +37,7 @@ class _ExtractionScreenState extends State<ExtractionScreen> {
     );
 
     await Future.delayed(const Duration(seconds: 2));
-
-    Navigator.pop(context); // close loading
+    Navigator.pop(context);
     Navigator.push(context, MaterialPageRoute(builder: (_) => nextPage));
   }
 
@@ -46,7 +50,7 @@ class _ExtractionScreenState extends State<ExtractionScreen> {
       showLoadingThenNavigate(
         context: context,
         nextPage: ExtractionResultScreen(
-          imagePath: 'assets/Watermark_3.png',
+          imagePath: 'assets/C2.png',
           watermark: selectedWatermark!,
           subband: 2,
           bit: 16,
@@ -82,9 +86,9 @@ class _ExtractionScreenState extends State<ExtractionScreen> {
                     (_) => AlertDialog(
                       title: const Text("Penjelasan Ekstraksi"),
                       content: const Text(
-                        "🔸 Ekstraksi adalah proses mengambil kembali watermark dari audio yang telah ditanam sebelumnya.\n"
-                        "🔸 Audio yang digunakan harus berasal dari proses embedding.\n"
-                        "🔸 Pilih watermark yang sesuai agar hasil ekstraksi akurat.",
+                        "🔸 Untuk proses ekstraksi, pengguna cukup memberikan file audio yang telah ter-watermark beserta kunci parameter.\n\n"
+                        "🔸 Sistem akan memprosesnya dan mengembalikan hasil berupa citra watermark serta nilai performa sistem seperti akurasi atau kesalahan ekstraksi.",
+                        style: TextStyle(fontSize: 14),
                       ),
                       actions: [
                         TextButton(
@@ -112,32 +116,25 @@ class _ExtractionScreenState extends State<ExtractionScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            GestureDetector(
+            _buildUploadBox(
+              icon: Icons.headphones,
+              label: 'Select audio file',
               onTap: onUploadAudio,
-              child: Container(
-                width: double.infinity,
-                height: 130,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(36),
-                  border: Border.all(color: const Color(0xFF411530), width: 2),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.headphones,
-                      size: 36,
-                      color: Colors.grey.shade400,
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Select audio file',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ],
-                ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              "Upload Key File",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Color(0xFF411530),
               ),
+            ),
+            const SizedBox(height: 8),
+            _buildUploadBox(
+              icon: Icons.vpn_key,
+              label: 'Select key file',
+              onTap: onUploadKey,
             ),
             const SizedBox(height: 30),
             const Text(
@@ -153,14 +150,13 @@ class _ExtractionScreenState extends State<ExtractionScreen> {
               value: selectedWatermark,
               hint: const Text("Choose Metode"),
               items:
-                  watermarkOptions.map((item) {
-                    return DropdownMenuItem(value: item, child: Text(item));
-                  }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedWatermark = value;
-                });
-              },
+                  watermarkOptions
+                      .map(
+                        (item) =>
+                            DropdownMenuItem(value: item, child: Text(item)),
+                      )
+                      .toList(),
+              onChanged: (value) => setState(() => selectedWatermark = value),
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.white,
@@ -175,6 +171,25 @@ class _ExtractionScreenState extends State<ExtractionScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Use Deep Learning",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Color(0xFF411530),
+                  ),
+                ),
+                Switch(
+                  value: useDeepLearning,
+                  activeColor: const Color(0xFFD1512D),
+                  onChanged: (val) => setState(() => useDeepLearning = val),
+                ),
+              ],
             ),
             const SizedBox(height: 36),
             Center(
@@ -204,6 +219,33 @@ class _ExtractionScreenState extends State<ExtractionScreen> {
         ),
       ),
       bottomNavigationBar: const BottomNavBar(currentRoute: '/extract'),
+    );
+  }
+
+  Widget _buildUploadBox({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        height: 130,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(36),
+          border: Border.all(color: const Color(0xFF411530), width: 2),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 36, color: Colors.grey.shade400),
+            const SizedBox(height: 8),
+            Text(label, style: const TextStyle(color: Colors.grey)),
+          ],
+        ),
+      ),
     );
   }
 }
