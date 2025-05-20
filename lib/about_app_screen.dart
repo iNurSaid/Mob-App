@@ -29,7 +29,7 @@ class AboutAppScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(child: Image.asset('assets/logo_wavemark.png', height: 100)),
+            Center(child: Image.asset('assets/Logo_Wavemark.png', height: 100)),
             const SizedBox(height: 25),
 
             Container(
