@@ -96,7 +96,7 @@ flutter:
     - assets/turntable.png
     - assets/embed_icon.png
     - assets/extract_icon.png
-    - assets/logo_wavemark.png
+    - assets/Logo_Wavemark.png
     - assets/Logo.png
 
   # The following line ensures that the Material Icons font is
