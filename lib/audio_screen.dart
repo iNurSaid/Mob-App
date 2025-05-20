@@ -3,7 +3,9 @@ import 'package:just_audio/just_audio.dart';
 import 'bottom_nav.dart';
 
 class AudioScreen extends StatefulWidget {
-  const AudioScreen({super.key});
+  final bool isPicker;
+
+  const AudioScreen({super.key, this.isPicker = false});
 
   @override
   State<AudioScreen> createState() => _AudioScreenState();
@@ -85,7 +87,7 @@ class _AudioScreenState extends State<AudioScreen> {
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
-                  // TODO: handle hapus dari list jika disimpan di storage atau Supabase
+                  // TODO: handle hapus dari list jika pakai storage
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 child: const Text(
@@ -155,11 +157,8 @@ class _AudioScreenState extends State<AudioScreen> {
                     Expanded(
                       child: TextField(
                         controller: _searchController,
-                        onChanged: (value) {
-                          setState(() {
-                            _searchQuery = value;
-                          });
-                        },
+                        onChanged:
+                            (value) => setState(() => _searchQuery = value),
                         decoration: InputDecoration(
                           hintText: 'Search',
                           prefixIcon: const Icon(Icons.search),
@@ -204,6 +203,8 @@ class _AudioScreenState extends State<AudioScreen> {
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final audio = filteredList[index];
+                final path = audio['file']!;
+                final title = audio['title']!;
                 return ListTile(
                   tileColor: Colors.white,
                   shape: RoundedRectangleBorder(
@@ -214,7 +215,7 @@ class _AudioScreenState extends State<AudioScreen> {
                     color: Color(0xFFD1512D),
                   ),
                   title: Text(
-                    audio['title'] ?? '',
+                    title,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF411530),
@@ -232,7 +233,7 @@ class _AudioScreenState extends State<AudioScreen> {
                           ),
                         );
                       } else if (value == 'delete') {
-                        _confirmDelete(audio['title']!);
+                        _confirmDelete(title);
                       }
                     },
                     itemBuilder:
@@ -244,12 +245,21 @@ class _AudioScreenState extends State<AudioScreen> {
                           PopupMenuItem(value: 'delete', child: Text('Hapus')),
                         ],
                   ),
-                  onTap: () => _playAudio(audio['file']!, audio['title']!),
+                  onTap: () {
+                    if (widget.isPicker) {
+                      Navigator.pop(
+                        context,
+                        path,
+                      ); // ✔️ Return ke EmbeddingScreen
+                    } else {
+                      _playAudio(path, title); // 🎧 Fungsi play
+                    }
+                  },
                 );
               },
             ),
           ),
-          if (_currentTitle != null)
+          if (_currentTitle != null && !widget.isPicker)
             Container(
               color: const Color(0xFF5E2A4D),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
