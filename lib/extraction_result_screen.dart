@@ -107,8 +107,8 @@ class ExtractionResultScreen extends StatelessWidget {
                 "Metode: $watermark\n"
                 "Subband: ${isDL ? '-' : subband} | Bit: ${isDL ? '-' : bit} | Alpha: $alfass\n"
                 "BER (pre-attack): 0.0000\n"
-                "BER (post-attack): 0.4795\n"
-                "Payload: 43.07",
+                "BER (post-attack): 0.0000\n"
+                "Payload: 172.266",
                 style: const TextStyle(
                   fontSize: 15,
                   height: 1.5,
