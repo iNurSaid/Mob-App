@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'bottom_nav.dart';
 import 'embedding_result_screen.dart';
+import 'audio_screen.dart';
+import 'image_screen.dart';
 
 class EmbedingScreen extends StatefulWidget {
   const EmbedingScreen({super.key});
@@ -14,13 +16,69 @@ class _EmbedingScreenState extends State<EmbedingScreen> {
   int? selectedSubband;
   int? selectedBit;
   String alfass = '';
+  String? selectedImagePath;
+  String? selectedAudioPath;
 
-  final watermarkOptions = ['Metode 1', 'Metode 2', 'Metode 3', 'Metode 4'];
+  final watermarkOptions = [
+    'SWT-DST-QR-SS',
+    'SWT-DCT-QR-SS',
+    'DWT-DST-SVD-SS',
+    'DWT-DCT-SVD-SS',
+  ];
   final subbandOptions = [1, 2, 3, 4];
   final bitOptions = [16, 32];
 
   void onUpload(String type) {
-    debugPrint('Upload $type file...');
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.phone_android),
+              title: const Text("Ambil dari Device"),
+              onTap: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Fitur belum tersedia.")),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.folder),
+              title: const Text("Pilih dari Library"),
+              onTap: () async {
+                Navigator.pop(context);
+                final selectedFile = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) =>
+                            type == "Audio"
+                                ? const AudioScreen(isPicker: true)
+                                : const ImageScreen(isPicker: true),
+                  ),
+                );
+
+                if (selectedFile != null && selectedFile is String) {
+                  setState(() {
+                    if (type == "Image") {
+                      selectedImagePath = selectedFile;
+                    } else {
+                      selectedAudioPath = selectedFile;
+                    }
+                  });
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> showLoadingThenNavigate({
@@ -47,6 +105,15 @@ class _EmbedingScreenState extends State<EmbedingScreen> {
         selectedSubband != null &&
         selectedBit != null &&
         alfass.isNotEmpty) {
+      if (selectedImagePath == null || selectedAudioPath == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Please select image and audio from library"),
+          ),
+        );
+        return;
+      }
+
       showLoadingThenNavigate(
         context: context,
         nextPage: EmbeddingResultScreen(
@@ -54,6 +121,8 @@ class _EmbedingScreenState extends State<EmbedingScreen> {
           subband: selectedSubband!,
           bit: selectedBit!,
           alfass: alfass,
+          imagePath: selectedImagePath!,
+          audioPath: selectedAudioPath!,
         ),
       );
     } else {
@@ -112,18 +181,23 @@ class _EmbedingScreenState extends State<EmbedingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               buildUploadSection(
-                "Upload Image",
+                "Select Image",
                 Icons.image,
                 () => onUpload("Image"),
+                selectedImagePath != null
+                    ? selectedImagePath!.split("/").last
+                    : null,
               ),
               const SizedBox(height: 20),
               buildUploadSection(
-                "Upload Audio",
+                "Select Audio",
                 Icons.headphones,
                 () => onUpload("Audio"),
+                selectedAudioPath != null
+                    ? selectedAudioPath!.split("/").last
+                    : null,
               ),
               const SizedBox(height: 30),
-
               const Text(
                 "Select Metode",
                 style: TextStyle(
@@ -146,17 +220,14 @@ class _EmbedingScreenState extends State<EmbedingScreen> {
                 onChanged: (value) => setState(() => selectedWatermark = value),
                 decoration: _inputDecoration(),
               ),
-
               const SizedBox(height: 24),
               _buildDropdown("Subband", selectedSubband, subbandOptions, (val) {
                 setState(() => selectedSubband = val);
               }),
-
               const SizedBox(height: 20),
               _buildDropdown("Bit", selectedBit, bitOptions, (val) {
                 setState(() => selectedBit = val);
               }),
-
               const SizedBox(height: 20),
               const Text(
                 "Alfass",
@@ -173,7 +244,6 @@ class _EmbedingScreenState extends State<EmbedingScreen> {
                   hintText: "Enter alfass value",
                 ),
               ),
-
               const SizedBox(height: 28),
               Center(
                 child: ElevatedButton(
@@ -206,7 +276,12 @@ class _EmbedingScreenState extends State<EmbedingScreen> {
     );
   }
 
-  Widget buildUploadSection(String label, IconData icon, VoidCallback onTap) {
+  Widget buildUploadSection(
+    String label,
+    IconData icon,
+    VoidCallback onTap,
+    String? selectedFileName,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -234,7 +309,10 @@ class _EmbedingScreenState extends State<EmbedingScreen> {
               children: [
                 Icon(icon, size: 36, color: Colors.grey.shade400),
                 const SizedBox(height: 8),
-                const Text('Select file', style: TextStyle(color: Colors.grey)),
+                Text(
+                  selectedFileName ?? 'Select file',
+                  style: const TextStyle(color: Colors.grey),
+                ),
               ],
             ),
           ),
