@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'bottom_nav.dart';
-import 'image_gallery_preview.dart'; // ⬅️ pastikan file ini ada
+import 'image_gallery_preview.dart';
 
 class ImageScreen extends StatelessWidget {
-  const ImageScreen({super.key});
+  final bool isPicker;
+  const ImageScreen({super.key, this.isPicker = false});
 
   final List<String> imagePaths = const [
     'assets/Watermark_1.png',
@@ -16,6 +17,7 @@ class ImageScreen extends StatelessWidget {
     'assets/Watermark_8.png',
     'assets/Watermark_9.png',
     'assets/Watermark_10.png',
+    'assets/Logo.png',
   ];
 
   @override
@@ -50,16 +52,24 @@ class ImageScreen extends StatelessWidget {
             final path = imagePaths[index];
             return GestureDetector(
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder:
-                        (_) => ImageGalleryPreview(
-                          imagePaths: imagePaths,
-                          initialIndex: index,
-                        ),
-                  ),
-                );
+                if (isPicker) {
+                  Navigator.pop(
+                    context,
+                    path,
+                  ); // ✅ kirim path ke EmbeddingScreen
+                } else {
+                  // 🔁 Tetap buka preview kalau buka dari LibraryScreen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (_) => ImageGalleryPreview(
+                            imagePaths: imagePaths,
+                            initialIndex: index,
+                          ),
+                    ),
+                  );
+                }
               },
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
