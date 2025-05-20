@@ -13,7 +13,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool _showSearch = false;
   String? name;
   String? email;
   String? avatarUrl;
@@ -175,22 +174,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     builder: (context) => const ProfileScreen(),
                   ),
                 );
-                if (result == true) {
-                  _loadUserProfile();
-                }
+                if (result == true) _loadUserProfile();
               },
             ),
             ListTile(
               leading: const Icon(Icons.info),
               title: const Text('About App'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AboutAppScreen(),
+              onTap:
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AboutAppScreen(),
+                    ),
                   ),
-                );
-              },
             ),
             ListTile(
               leading: const Icon(Icons.logout),
@@ -200,7 +196,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -210,63 +205,37 @@ class _HomeScreenState extends State<HomeScreen> {
                   horizontal: 20,
                   vertical: 10,
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
-                    Builder(
-                      builder:
-                          (context) => IconButton(
-                            icon: const Icon(
-                              Icons.menu,
-                              color: Color(0xFF411530),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Builder(
+                        builder:
+                            (context) => IconButton(
+                              icon: const Icon(
+                                Icons.menu,
+                                color: Color(0xFF411530),
+                              ),
+                              onPressed:
+                                  () => Scaffold.of(context).openDrawer(),
                             ),
-                            onPressed: () => Scaffold.of(context).openDrawer(),
-                          ),
-                    ),
-                    const Text(
-                      'WaveMark',
-                      style: TextStyle(
-                        fontFamily: 'Archivo Black',
-                        fontSize: 24,
-                        color: Color(0xFF411530),
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.search, color: Color(0xFFD1512D)),
-                      onPressed:
-                          () => setState(() => _showSearch = !_showSearch),
+                    const Center(
+                      child: Text(
+                        'WaveMark',
+                        style: TextStyle(
+                          fontFamily: 'Archivo Black',
+                          fontSize: 24,
+                          color: Color(0xFF411530),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
-              if (_showSearch)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    children: [
-                      TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Search media...',
-                          prefixIcon: const Icon(
-                            Icons.search,
-                            color: Color(0xFF411530),
-                          ),
-                          filled: true,
-                          fillColor: const Color(0xFFFFF6F3),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                    ],
-                  ),
-                ),
               Image.asset(
                 'assets/turntable.png',
                 width: screenWidth,
@@ -381,8 +350,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           Text(
-                            name ??
-                                'User', // ✅ ini akan berubah sesuai nama dari SharedPreferences
+                            name ?? 'User',
                             style: const TextStyle(
                               fontSize: 24,
                               color: Color(0xFF411530),
