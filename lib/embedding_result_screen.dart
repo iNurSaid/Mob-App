@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:flutter/services.dart';
 import 'bottom_nav.dart';
 
-class EmbeddingResultScreen extends StatelessWidget {
+class EmbeddingResultScreen extends StatefulWidget {
   final String watermark;
   final int subband;
   final int bit;
   final String alfass;
+  final String imagePath;
+  final String audioPath;
 
   const EmbeddingResultScreen({
     super.key,
@@ -13,11 +17,81 @@ class EmbeddingResultScreen extends StatelessWidget {
     required this.subband,
     required this.bit,
     required this.alfass,
+    required this.imagePath,
+    required this.audioPath,
   });
 
   @override
+  State<EmbeddingResultScreen> createState() => _EmbeddingResultScreenState();
+}
+
+class _EmbeddingResultScreenState extends State<EmbeddingResultScreen> {
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  bool isPlaying = false;
+  String audioTitle = "Unknown Title";
+  Duration audioDuration = Duration.zero;
+  Duration currentPosition = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAudio();
+    _extractAudioTitle();
+
+    _audioPlayer.positionStream.listen((position) {
+      setState(() {
+        currentPosition = position;
+      });
+    });
+  }
+
+  void _extractAudioTitle() {
+    final parts = widget.audioPath.split("/");
+    final filename = parts.isNotEmpty ? parts.last : "";
+    final name = filename.replaceAll(".wav", "").replaceAll("_", "-");
+    setState(() {
+      audioTitle = name;
+    });
+  }
+
+  Future<void> _loadAudio() async {
+    try {
+      final bytes = await rootBundle.load(widget.audioPath);
+      final audioData = bytes.buffer.asUint8List();
+      final uri = Uri.dataFromBytes(audioData);
+      await _audioPlayer.setAudioSource(AudioSource.uri(uri));
+      await _audioPlayer.load();
+      final duration = _audioPlayer.duration;
+      if (duration != null) {
+        setState(() {
+          audioDuration = duration;
+        });
+      }
+    } catch (e) {
+      debugPrint("Audio load error: $e");
+    }
+  }
+
+  void _togglePlayback() {
+    setState(() => isPlaying = !isPlaying);
+    isPlaying ? _audioPlayer.play() : _audioPlayer.pause();
+  }
+
+  String formatDuration(Duration duration) {
+    final minutes = duration.inMinutes.remainder(60).toString().padLeft(1, '0');
+    final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return "$minutes:$seconds";
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final bool isDL = alfass == "DL-Auto";
+    final bool isDL = widget.alfass == "DL-Auto";
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5E8E4),
@@ -80,43 +154,49 @@ class EmbeddingResultScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 40),
-            const Text(
-              'Inside Out',
-              style: TextStyle(
+            Text(
+              audioTitle,
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFFD1512D),
               ),
             ),
             const Text(
-              'The Chainsmokers, Cha...',
+              'Audio Watermarking',
               style: TextStyle(fontSize: 14, color: Colors.black54),
             ),
             const SizedBox(height: 16),
             Row(
-              children: const [
-                Text('0:25'),
+              children: [
+                Text(formatDuration(currentPosition)),
                 Expanded(
                   child: Slider(
-                    value: 25,
+                    value: currentPosition.inSeconds.toDouble(),
                     min: 0,
-                    max: 195,
-                    onChanged: null,
-                    activeColor: Color(0xFF411530),
+                    max: audioDuration.inSeconds.toDouble(),
+                    onChanged: (value) async {
+                      final newPos = Duration(seconds: value.toInt());
+                      await _audioPlayer.seek(newPos);
+                    },
+                    activeColor: const Color(0xFF411530),
                   ),
                 ),
-                Text('3:15'),
+                Text(formatDuration(audioDuration)),
               ],
             ),
             const SizedBox(height: 12),
             Center(
-              child: CircleAvatar(
-                radius: 30,
-                backgroundColor: Color(0xFFD1512D),
-                child: const Icon(
-                  Icons.play_arrow,
-                  size: 30,
-                  color: Colors.white,
+              child: GestureDetector(
+                onTap: _togglePlayback,
+                child: CircleAvatar(
+                  radius: 30,
+                  backgroundColor: const Color(0xFFD1512D),
+                  child: Icon(
+                    isPlaying ? Icons.pause : Icons.play_arrow,
+                    size: 30,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -130,10 +210,10 @@ class EmbeddingResultScreen extends StatelessWidget {
                 border: Border.all(color: Color(0xFF411530), width: 1.5),
               ),
               child: Text(
-                "Metode: $watermark\n"
-                "Subband: ${isDL ? '-' : subband} | Bit: ${isDL ? '-' : bit} | Alpha: $alfass\n"
-                "SNR: 32.63 dB | ODG: -3.43\n"
-                "Status: Watermark berhasil diekstraksi.",
+                "Metode: ${widget.watermark}\n"
+                "Subband: ${isDL ? '-' : widget.subband} | Bit: ${isDL ? '-' : widget.bit} | Alpha: ${widget.alfass}\n"
+                "SNR: 20.66 dB | ODG: -3.43\n"
+                "Status: Watermark berhasil diembeding.",
                 style: const TextStyle(
                   fontSize: 15,
                   height: 1.5,
