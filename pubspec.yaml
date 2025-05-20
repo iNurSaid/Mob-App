@@ -97,6 +97,7 @@ flutter:
     - assets/embed_icon.png
     - assets/extract_icon.png
     - assets/logo_wavemark.png
+    - assets/Logo.png
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
